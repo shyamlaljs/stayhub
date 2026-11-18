@@ -2,7 +2,7 @@
 
 An independently built student housing finder demo for exploring PG stays and shared rooms across Indian cities. The visual design, front-end implementation, and sample listings in this project were created from scratch; no code or images were copied from the shared PGLife archive.
 
-**Live demo:** add the deployment URL after publishing.
+**Live demo:** https://stayhub-seven-pink.vercel.app/
 
 ## What it does
 
