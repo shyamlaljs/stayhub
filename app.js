@@ -23,12 +23,23 @@ const locationInput = document.getElementById('location-input');
 const budgetSelect = document.getElementById('budget-select');
 const maxRent = document.getElementById('max-rent');
 const dialog = document.getElementById('detail-dialog');
+const compareDialog = document.getElementById('compare-dialog');
 const toast = document.getElementById('toast');
 let query = '';
 let savedOnly = false;
 let activeCity = '';
 let toastTimer;
 let saved = new Set(readSaved());
+let compared = new Set(readCompared());
+
+function readCompared(){
+  try { const value=JSON.parse(localStorage.getItem('stayhub:compare')||'[]'); return Array.isArray(value)?value.filter(id=>listings.some(item=>item.id===id)).slice(0,3):[]; }
+  catch { return []; }
+}
+function persistCompared(){
+  try { localStorage.setItem('stayhub:compare',JSON.stringify([...compared])); } catch { /* Comparison remains available for this session. */ }
+  updateCompareTray();
+}
 
 function readSaved(){
   try { const value=JSON.parse(localStorage.getItem('stayhub:saved')||'[]'); return Array.isArray(value)?value.filter(id=>typeof id==='string'):[]; }
@@ -51,6 +62,7 @@ function artMarkup(item,detail=false){
 }
 function cardMarkup(item){
   const isSaved=saved.has(item.id);
+  const isCompared=compared.has(item.id);
   return `<article class="property-card" data-id="${item.id}">
     <div class="property-art-wrap">${artMarkup(item)}
       ${item.verified?'<span class="badge-verified"><b>✓</b> VERIFIED</span>':''}
@@ -61,7 +73,7 @@ function cardMarkup(item){
       <div class="property-title-row"><h3>${item.name}</h3><div class="price">${money(item.rent)} <small>/ month</small></div></div>
       <p class="property-area">⌖ &nbsp;${item.area}</p>
       <div class="property-details"><span>${item.occupancy}</span><span>${item.distance}</span></div>
-      <div class="card-bottom"><span class="gender-badge">${item.genderLabel.toUpperCase()}</span><button class="view-link" type="button" data-detail="${item.id}">VIEW STAY <span aria-hidden="true">↗</span></button></div>
+      <div class="card-bottom"><span class="gender-badge">${item.genderLabel.toUpperCase()}</span><div class="card-actions"><button class="compare-toggle${isCompared?' is-compared':''}" type="button" data-compare="${item.id}" aria-pressed="${isCompared}">${isCompared?'✓ Added':'Compare'}</button><button class="view-link" type="button" data-detail="${item.id}">VIEW STAY <span aria-hidden="true">↗</span></button></div></div>
     </div>
   </article>`;
 }
@@ -99,8 +111,10 @@ function render(){
   const description=savedOnly?'saved stays':query||activeCity||'sample stays';
   document.getElementById('results-summary').textContent=`${count} ${count===1?'place':'places'} · ${description}`;
   document.getElementById('results-endnote').textContent=count?`Showing all ${count} sample ${count===1?'stay':'stays'}.`:'Try widening your search.';
-  document.querySelectorAll('.city-card').forEach(button=>button.classList.toggle('is-active',button.dataset.city===activeCity));
+  document.querySelectorAll('.city-card').forEach(button=>{const active=button.dataset.city===activeCity;button.classList.toggle('is-active',active);button.setAttribute('aria-pressed',String(active));});
   updateSavedCount();
+  persistUrlState();
+  updateCompareTray();
 }
 function renderCities(){
   document.getElementById('city-list').innerHTML=cities.map(city=>`<button class="city-card" type="button" data-city="${city.name}" aria-pressed="false"><span class="city-symbol" aria-hidden="true">${city.symbol}</span><span><small>${city.count}</small>${city.name}</span></button>`).join('');
@@ -108,6 +122,83 @@ function renderCities(){
 function showToast(message){
   toast.textContent=message;toast.classList.add('is-visible');clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),2300);
+}
+function updateCompareTray(){
+  const tray=document.getElementById('compare-tray');
+  const count=compared.size;
+  tray.hidden=count===0;
+  document.getElementById('compare-count').textContent=`${count} ${count===1?'stay':'stays'} selected`;
+  document.getElementById('compare-open').disabled=count<2;
+}
+function toggleCompare(id){
+  if(compared.has(id)){compared.delete(id);showToast('Stay removed from comparison.');}
+  else if(compared.size>=3){showToast('Compare up to three stays at a time.');return;}
+  else{compared.add(id);showToast('Stay added to your comparison.');}
+  persistCompared();render();
+}
+function compareValueRow(label,renderValue){
+  return `<tr><th scope="row">${label}</th>${[...compared].map(id=>{const item=listings.find(stay=>stay.id===id);return `<td>${renderValue(item)}</td>`;}).join('')}</tr>`;
+}
+function openComparison(){
+  const items=[...compared].map(id=>listings.find(stay=>stay.id===id)).filter(Boolean);
+  if(items.length<2){showToast('Add at least two stays to compare.');return;}
+  const cells=items.map(item=>`<th scope="col"><div class="compare-property"><div class="compare-art">${artMarkup(item,true)}</div><b>${item.name}</b><small>${item.city} · ${item.area}</small><button type="button" class="compare-remove" data-compare-remove="${item.id}">Remove</button></div></th>`).join('');
+  const rows=[
+    compareValueRow('Monthly rent',item=>`<strong>${money(item.rent)}</strong> / month`),
+    compareValueRow('Move-in estimate',item=>`<strong>${money(item.rent+item.deposit)}</strong><small>First rent + deposit</small>`),
+    compareValueRow('Deposit',item=>money(item.deposit)),
+    compareValueRow('Room',item=>item.roomLabel),
+    compareValueRow('Occupancy',item=>item.occupancy),
+    compareValueRow('Availability',item=>item.available),
+    compareValueRow('Rating',item=>`★ ${item.rating.toFixed(1)} <small>(${item.reviews} reviews)</small>`),
+    compareValueRow('Who can stay',item=>item.genderLabel),
+    compareValueRow('Verified',item=>item.verified?'✓ Reviewed':'Not marked'),
+    compareValueRow('Amenities',item=>[['wifi','Wi‑Fi'],['meals','Meals'],['laundry','Laundry'],['ac','A/C']].filter(([key])=>item[key]).map(([,label])=>label).join(' · ')||'—')
+  ].join('');
+  document.getElementById('compare-content').innerHTML=`<div class="compare-scroll"><table class="compare-table"><thead><tr><th scope="col">DETAIL</th>${cells}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  if(!compareDialog.open)compareDialog.showModal();
+}
+function persistUrlState(){
+  const url=new URL(window.location.href),params=new URLSearchParams();
+  if(query.trim())params.set('q',query.trim());
+  if(activeCity)params.set('city',activeCity);
+  if(budgetSelect.value!=='any')params.set('budget',budgetSelect.value);
+  if(Number(maxRent.value)<25000)params.set('rent',maxRent.value);
+  const gender=document.querySelector('input[name="gender"]:checked')?.value||'any';
+  if(gender!=='any')params.set('gender',gender);
+  const rooms=selectedValues('room'),amenities=selectedValues('amenity');
+  if(rooms.length)params.set('room',rooms.join(','));
+  if(amenities.length)params.set('amenity',amenities.join(','));
+  if(document.getElementById('verified-only').checked)params.set('verified','1');
+  if(document.getElementById('sort-select').value!=='recommended')params.set('sort',document.getElementById('sort-select').value);
+  url.search=params.toString();
+  window.history.replaceState({},'',url);
+}
+function restoreUrlState(){
+  const params=new URLSearchParams(window.location.search);
+  query=params.get('q')||'';
+  const city=params.get('city');
+  activeCity=cities.some(item=>item.name===city)?city:'';
+  locationInput.value=query||activeCity;
+  const budget=params.get('budget');
+  if([...budgetSelect.options].some(option=>option.value===budget))budgetSelect.value=budget;
+  const rent=Number(params.get('rent'));
+  if(Number.isFinite(rent)&&rent>=5000&&rent<=25000)maxRent.value=String(Math.round(rent/1000)*1000);
+  document.getElementById('max-rent-label').textContent=money(maxRent.value);
+  const gender=params.get('gender');
+  if(['any','women','men'].includes(gender))document.querySelector(`input[name="gender"][value="${gender}"]`).checked=true;
+  const rooms=(params.get('room')||'').split(',');
+  const amenities=(params.get('amenity')||'').split(',');
+  document.querySelectorAll('input[name="room"]').forEach(input=>input.checked=rooms.includes(input.value));
+  document.querySelectorAll('input[name="amenity"]').forEach(input=>input.checked=amenities.includes(input.value));
+  document.getElementById('verified-only').checked=params.get('verified')==='1';
+  const sort=params.get('sort');
+  if([...document.getElementById('sort-select').options].some(option=>option.value===sort))document.getElementById('sort-select').value=sort;
+}
+async function shareSearch(){
+  const url=new URL(window.location.href);url.hash='listings';
+  try{await navigator.clipboard.writeText(url.toString());showToast('Search link copied. Share this shortlist with a friend.');}
+  catch{window.prompt('Copy your StayHub search link:',url.toString());}
 }
 function toggleSaved(id){
   const item=listings.find(stay=>stay.id===id);if(!item)return;
@@ -118,7 +209,7 @@ function toggleSaved(id){
 function openDetails(id){
   const item=listings.find(stay=>stay.id===id);if(!item)return;
   const amenities=[['wifi','Wi‑Fi'],['meals','Meals available'],['laundry','Laundry'],['ac','Air conditioning']].filter(([key])=>item[key]).map(([,label])=>`<span>${label}</span>`).join('');
-  document.getElementById('detail-content').innerHTML=`<div class="detail-hero">${artMarkup(item,true)}</div><div class="detail-content"><div class="property-meta"><span>${item.city.toUpperCase()} · ${item.roomLabel.toUpperCase()}</span><span class="rating"><b>★</b> ${item.rating.toFixed(1)} <span>(${item.reviews} reviews)</span></span></div><div class="property-title-row"><h2 id="detail-title">${item.name}</h2><div class="price">${money(item.rent)} <small>/ month</small></div></div><p class="property-area">⌖ &nbsp;${item.area}</p><p class="property-description">${item.description}</p><div class="detail-highlights"><div class="detail-highlight"><small>ROOM</small><b>${item.roomLabel}</b></div><div class="detail-highlight"><small>OCCUPANCY</small><b>${item.occupancy}</b></div><div class="detail-highlight"><small>AVAILABLE</small><b>${item.available}</b></div></div><div class="detail-amenities">${amenities}</div><p class="property-description"><b>House notes:</b> ${item.houseRules}. <b>Deposit:</b> ${money(item.deposit)}.</p><div class="detail-footer"><p>Sample listing · This demo doesn’t process bookings or payments.</p><button class="inquiry-button" type="button" data-inquiry="${item.id}">Ask about this stay <span aria-hidden="true">↗</span></button></div></div>`;
+  document.getElementById('detail-content').innerHTML=`<div class="detail-hero">${artMarkup(item,true)}</div><div class="detail-content"><div class="property-meta"><span>${item.city.toUpperCase()} · ${item.roomLabel.toUpperCase()}</span><span class="rating"><b>★</b> ${item.rating.toFixed(1)} <span>(${item.reviews} reviews)</span></span></div><div class="property-title-row"><h2 id="detail-title">${item.name}</h2><div class="price">${money(item.rent)} <small>/ month</small></div></div><p class="property-area">⌖ &nbsp;${item.area}</p><p class="property-description">${item.description}</p><div class="detail-highlights"><div class="detail-highlight"><small>ROOM</small><b>${item.roomLabel}</b></div><div class="detail-highlight"><small>OCCUPANCY</small><b>${item.occupancy}</b></div><div class="detail-highlight"><small>AVAILABLE</small><b>${item.available}</b></div></div><div class="detail-amenities">${amenities}</div><p class="property-description"><b>House notes:</b> ${item.houseRules}. <b>Deposit:</b> ${money(item.deposit)}.</p><section class="cost-estimator" data-rent="${item.rent}" data-deposit="${item.deposit}"><div class="estimator-head"><div><span class="filter-kicker">PLAN BEFORE YOU MOVE</span><h3>Estimate the cost</h3></div><label for="stay-length">Stay length<select id="stay-length" data-stay-length><option value="1">1 month</option><option value="3">3 months</option><option value="6" selected>6 months</option><option value="12">12 months</option></select></label></div><div class="cost-totals"><div><small>To move in</small><b data-upfront-cost>${money(item.rent+item.deposit)}</b><span>first rent + deposit</span></div><div><small>Full stay estimate</small><b data-stay-cost>${money(item.rent*6+item.deposit)}</b><span data-stay-label>6 months + deposit</span></div></div><p>Planning estimate only. Utilities and other fees are not included.</p></section><div class="detail-footer"><p>Sample listing · This demo doesn’t process bookings or payments.</p><button class="inquiry-button" type="button" data-inquiry="${item.id}">Ask about this stay <span aria-hidden="true">↗</span></button></div></div>`;
   dialog.showModal();document.body.classList.add('modal-open');
 }
 function resetFilters(){
@@ -128,7 +219,8 @@ function resetFilters(){
   document.getElementById('sort-select').value='recommended';document.querySelector('.filter-panel').classList.remove('is-open');render();
 }
 
-renderCities();render();document.getElementById('year').textContent=new Date().getFullYear();
+renderCities();document.getElementById('year').textContent=new Date().getFullYear();
+restoreUrlState();render();
 document.getElementById('search-form').addEventListener('submit',event=>{event.preventDefault();query=locationInput.value;activeCity='';document.getElementById('listings').scrollIntoView({behavior:'smooth'});render();});
 locationInput.addEventListener('input',()=>{if(!locationInput.value){query='';activeCity='';render();}});
 budgetSelect.addEventListener('change',render);
@@ -137,7 +229,7 @@ document.querySelectorAll('input[name="gender"],input[name="room"],input[name="a
 document.getElementById('verified-only').addEventListener('change',render);
 document.getElementById('sort-select').addEventListener('change',render);
 document.getElementById('city-list').addEventListener('click',event=>{const button=event.target.closest('[data-city]');if(!button)return;activeCity=activeCity===button.dataset.city?'':button.dataset.city;query='';locationInput.value=activeCity;render();document.getElementById('listings').scrollIntoView({behavior:'smooth'});});
-grid.addEventListener('click',event=>{const saveButton=event.target.closest('[data-save]');if(saveButton){toggleSaved(saveButton.dataset.save);return;}const detailButton=event.target.closest('[data-detail]');if(detailButton)openDetails(detailButton.dataset.detail);});
+grid.addEventListener('click',event=>{const saveButton=event.target.closest('[data-save]');if(saveButton){toggleSaved(saveButton.dataset.save);return;}const compareButton=event.target.closest('[data-compare]');if(compareButton){toggleCompare(compareButton.dataset.compare);return;}const detailButton=event.target.closest('[data-detail]');if(detailButton)openDetails(detailButton.dataset.detail);});
 document.getElementById('saved-nav').addEventListener('click',()=>{savedOnly=!savedOnly;activeCity='';query='';locationInput.value='';render();document.getElementById('listings').scrollIntoView({behavior:'smooth'});});
 document.getElementById('reset-filters').addEventListener('click',resetFilters);
 document.getElementById('empty-reset').addEventListener('click',resetFilters);
@@ -145,5 +237,12 @@ document.getElementById('mobile-filter').addEventListener('click',()=>document.q
 document.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
 dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
 dialog.addEventListener('close',()=>document.body.classList.remove('modal-open'));
+document.getElementById('detail-content').addEventListener('change',event=>{const control=event.target.closest('[data-stay-length]');if(!control)return;const estimator=control.closest('.cost-estimator'),months=Number(control.value),rent=Number(estimator.dataset.rent),deposit=Number(estimator.dataset.deposit);estimator.querySelector('[data-stay-cost]').textContent=money(rent*months+deposit);estimator.querySelector('[data-stay-label]').textContent=`${months} ${months===1?'month':'months'} + deposit`;});
 document.getElementById('detail-content').addEventListener('click',event=>{const button=event.target.closest('[data-inquiry]');if(!button)return;const item=listings.find(stay=>stay.id===button.dataset.inquiry);dialog.close();showToast(`Demo only — ${item.name} is not accepting real inquiries.`);});
+document.getElementById('share-search').addEventListener('click',shareSearch);
+document.getElementById('compare-open').addEventListener('click',openComparison);
+document.getElementById('compare-clear').addEventListener('click',()=>{compared.clear();persistCompared();render();});
+document.getElementById('compare-content').addEventListener('click',event=>{const button=event.target.closest('[data-compare-remove]');if(!button)return;compared.delete(button.dataset.compareRemove);persistCompared();render();if(compared.size<2)compareDialog.close();else openComparison();});
+document.querySelector('.compare-close').addEventListener('click',()=>compareDialog.close());
+compareDialog.addEventListener('click',event=>{if(event.target===compareDialog)compareDialog.close();});
 document.getElementById('location-input').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();document.getElementById('search-form').requestSubmit();}});

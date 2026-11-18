@@ -8,12 +8,13 @@ An independently built student housing finder demo for exploring PG stays and sh
 
 - Search by city, neighbourhood, or listing name
 - Filter by monthly rent, room type, audience, amenities, and verified status
-- Sort by price or review score
-- Save and remove stays from a browser-local shortlist
-- Open a detail view with house notes, availability, deposit, and amenities
+- Sort by price or review score and share a filtered search with a URL
+- Save stays between visits and build a comparison of up to three homes
+- Compare rent, deposit, move-in estimate, amenities, availability, and reviews
+- Open a detail view with house notes and use the interactive stay-cost estimator
 - Adapt to narrow mobile screens and support keyboard navigation
 
-Listings are sample data. This demo has no user accounts, real enquiries, reservations, payment processing, or live inventory.
+Listings and ratings are sample data. Cost figures are planning estimates. This demo has no user accounts, real enquiries, reservations, payment processing, or live inventory.
 
 ## Run locally
 

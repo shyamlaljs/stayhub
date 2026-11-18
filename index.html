@@ -69,7 +69,7 @@
           <label class="verified-filter"><input type="checkbox" id="verified-only"><span class="verified-icon">✓</span><span><b>Verified stays</b><small>Listings marked as reviewed</small></span></label>
         </aside>
         <div class="results-column">
-          <div class="results-toolbar"><p id="results-summary" aria-live="polite">Finding stays for you…</p><button class="mobile-filter" id="mobile-filter" type="button">Filters <span>☷</span></button></div>
+          <div class="results-toolbar"><p id="results-summary" aria-live="polite">Finding stays for you…</p><div class="results-actions"><button class="share-search" id="share-search" type="button">Share search <span aria-hidden="true">↗</span></button><button class="mobile-filter" id="mobile-filter" type="button">Filters <span>☷</span></button></div></div>
           <div class="property-grid" id="property-grid" aria-live="polite"></div>
           <div class="empty-state" id="empty-state" hidden><span class="empty-icon">⌂</span><h3>No stays found this time.</h3><p>Try another city or loosen a filter to see more options.</p><button class="button button-outline" id="empty-reset" type="button">Clear filters</button></div>
           <div class="load-more-wrap"><span id="results-endnote">You’re all caught up.</span></div>
@@ -79,7 +79,7 @@
 
     <section class="how-section" id="how-it-works">
       <div class="how-heading"><p class="eyebrow">A LITTLE LESS STRESS, A LOT MORE HOME</p><h2>Moving somewhere new<br>should feel <em>simple.</em></h2></div>
-      <div class="steps-grid"><article class="step-card"><span class="step-number">01</span><div class="step-icon step-icon-pin">⌖</div><h3>Pick your place</h3><p>Search by city, neighbourhood and budget. Find what fits before you even pack.</p></article><article class="step-card"><span class="step-number">02</span><div class="step-icon step-icon-key">⌂</div><h3>Get the details</h3><p>See what’s included, understand the house rules, and explore the space at your own pace.</p></article><article class="step-card"><span class="step-number">03</span><div class="step-icon step-icon-heart">♡</div><h3>Find your feeling</h3><p>Save places you like and keep a shortlist close while you plan your next chapter.</p></article></div>
+      <div class="steps-grid"><article class="step-card"><span class="step-number">01</span><div class="step-icon step-icon-pin">⌖</div><h3>Find your fit</h3><p>Filter by city, budget, room type, who can stay, and the amenities you need.</p></article><article class="step-card"><span class="step-number">02</span><div class="step-icon step-icon-key">⌂</div><h3>Plan the move</h3><p>Open a stay to estimate move-in costs, compare monthly rent, and check availability.</p></article><article class="step-card"><span class="step-number">03</span><div class="step-icon step-icon-heart">♡</div><h3>Decide together</h3><p>Save favourites, compare up to three homes side by side, or share your filtered search.</p></article></div>
     </section>
 
     <section class="closing-section" id="demo-note"><div><p class="eyebrow">BUILT WITH CARE · DEMO EXPERIENCE</p><h2>A little more<br><em>at home.</em></h2></div><p class="closing-copy">StayHub is an independent portfolio demo. Listings are sample data; no real reservations, payments, or accounts are processed.</p><a class="back-top" href="#top" aria-label="Back to top">↑</a></section>
@@ -87,6 +87,8 @@
   <footer class="site-footer"><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">s</span><span>stayhub<span class="brand-dot">.</span></span></a><span>MADE FOR THE NEXT CHAPTER</span><span>© <span id="year"></span> STAYHUB · PORTFOLIO PROJECT</span></footer>
 
   <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title"><button class="dialog-close" type="button" aria-label="Close stay details">×</button><div id="detail-content"></div></dialog>
+  <div class="compare-tray" id="compare-tray" hidden><div><b id="compare-count">0 stays selected</b><span>Choose up to three homes to compare.</span></div><button class="compare-clear" id="compare-clear" type="button">Clear</button><button class="compare-open" id="compare-open" type="button" disabled>Compare stays</button></div>
+  <dialog class="compare-dialog" id="compare-dialog" aria-labelledby="compare-title"><div class="compare-dialog-head"><div><p class="eyebrow">YOUR SHORTLIST, SIDE BY SIDE</p><h2 id="compare-title">Compare stays</h2></div><button class="dialog-close compare-close" type="button" aria-label="Close comparison">×</button></div><div id="compare-content"></div><p class="compare-note">All listing details are sample data for this portfolio demo.</p></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
