@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f2">
+  <meta name="description" content="StayHub helps students and young professionals find a comfortable, trusted place to stay.">
+  <title>StayHub — Find a place that feels right</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#listings">Skip to stays</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="StayHub home"><span class="brand-mark" aria-hidden="true">s</span><span>stayhub<span class="brand-dot">.</span></span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="#listings">Find a stay</a><a href="#how-it-works">How it works</a>
+    </nav>
+    <div class="header-actions">
+      <button class="saved-nav" id="saved-nav" type="button" aria-label="Show saved stays"><span aria-hidden="true">♡</span><span>Saved</span><b id="saved-count">0</b></button>
+      <a class="host-link" href="#demo-note">For hosts <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> THOUGHTFUL STAYS FOR YOUR NEXT CHAPTER</p>
+          <h1>Find a place<br>that feels <em>right.</em></h1>
+          <p class="hero-intro">Good people. A good neighbourhood. A room that feels like yours. Start with the stay that fits your life.</p>
+          <form class="search-bar" id="search-form" role="search">
+            <label class="search-location"><span class="search-icon" aria-hidden="true">⌕</span><span class="search-input-wrap"><small>WHERE TO?</small><input id="location-input" type="search" placeholder="City or neighbourhood" autocomplete="off" aria-label="Search city or neighbourhood"></span></label>
+            <span class="search-divider" aria-hidden="true"></span>
+            <label class="search-budget"><span class="budget-icon" aria-hidden="true">₹</span><span><small>MONTHLY BUDGET</small><select id="budget-select" aria-label="Maximum monthly budget"><option value="any">Any budget</option><option value="10000">Up to ₹10,000</option><option value="15000">Up to ₹15,000</option><option value="20000">Up to ₹20,000</option><option value="25000">Up to ₹25,000</option></select></span></label>
+            <button class="search-submit" type="submit" aria-label="Search stays">→</button>
+          </form>
+          <div class="hero-foot"><span><b class="live-dot"></b> Explore sample stays across India</span><span>Find your kind of place <b aria-hidden="true">↓</b></span></div>
+        </div>
+        <div class="hero-art" aria-label="Illustration of a welcoming shared home">
+          <div class="hero-sun"></div><div class="hero-window"></div><div class="hero-house"><div class="roof"></div><div class="house-face"><div class="house-window house-window-a"></div><div class="house-window house-window-b"></div><div class="house-door"></div></div></div>
+          <div class="hero-plant plant-left"><i></i><i></i><i></i><b></b></div><div class="hero-plant plant-right"><i></i><i></i><i></i><b></b></div>
+          <div class="art-note"><span class="note-icon">✳</span><span><b>Room to be yourself</b><small>Find your new favourite corner.</small></span></div>
+          <span class="art-caption">A BETTER WAY TO FEEL AT HOME</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="city-section" aria-labelledby="city-heading">
+      <div class="section-topline"><div><p class="eyebrow">A FEW PLACES TO BEGIN</p><h2 id="city-heading">Find your next <em>city.</em></h2></div><span class="city-aside">Little corners. Big possibilities.</span></div>
+      <div class="city-list" id="city-list" aria-label="Popular cities"></div>
+    </section>
+
+    <section class="listing-section" id="listings" aria-labelledby="listing-heading">
+      <div class="listing-heading-row">
+        <div><p class="eyebrow">YOUR NEXT PLACE IS OUT THERE <span class="mini-count" id="listing-count">—</span></p><h2 id="listing-heading">Stays worth <em>coming home to.</em></h2></div>
+        <div class="sort-wrap"><label for="sort-select">Sort by</label><select id="sort-select"><option value="recommended">Recommended</option><option value="price-asc">Price: low to high</option><option value="price-desc">Price: high to low</option><option value="rating">Top rated</option></select></div>
+      </div>
+      <div class="filter-layout">
+        <aside class="filter-panel" aria-label="Filter stays">
+          <div class="filter-head"><div><span class="filter-kicker">MAKE IT YOURS</span><h3>Filters</h3></div><button class="reset-button" id="reset-filters" type="button">Reset</button></div>
+          <fieldset class="filter-group"><legend>Monthly rent</legend><div class="range-labels"><span>₹5,000</span><strong id="max-rent-label">₹25,000</strong></div><input id="max-rent" type="range" min="5000" max="25000" step="1000" value="25000" aria-label="Maximum monthly rent"><div class="filter-hint">Including shared-room options</div></fieldset>
+          <fieldset class="filter-group"><legend>Who can stay?</legend><div class="choice-stack"><label><input type="radio" name="gender" value="any" checked><span>Anyone</span></label><label><input type="radio" name="gender" value="women"><span>Women</span></label><label><input type="radio" name="gender" value="men"><span>Men</span></label></div></fieldset>
+          <fieldset class="filter-group"><legend>Room type</legend><div class="choice-stack"><label><input type="checkbox" name="room" value="private"><span>Private room</span></label><label><input type="checkbox" name="room" value="shared"><span>Shared room</span></label><label><input type="checkbox" name="room" value="studio"><span>Studio</span></label></div></fieldset>
+          <fieldset class="filter-group amenities-group"><legend>Amenities</legend><div class="amenities-grid"><label><input type="checkbox" name="amenity" value="wifi"><span>Wi‑Fi</span></label><label><input type="checkbox" name="amenity" value="meals"><span>Meals</span></label><label><input type="checkbox" name="amenity" value="laundry"><span>Laundry</span></label><label><input type="checkbox" name="amenity" value="ac"><span>Air conditioning</span></label></div></fieldset>
+          <label class="verified-filter"><input type="checkbox" id="verified-only"><span class="verified-icon">✓</span><span><b>Verified stays</b><small>Listings marked as reviewed</small></span></label>
+        </aside>
+        <div class="results-column">
+          <div class="results-toolbar"><p id="results-summary" aria-live="polite">Finding stays for you…</p><button class="mobile-filter" id="mobile-filter" type="button">Filters <span>☷</span></button></div>
+          <div class="property-grid" id="property-grid" aria-live="polite"></div>
+          <div class="empty-state" id="empty-state" hidden><span class="empty-icon">⌂</span><h3>No stays found this time.</h3><p>Try another city or loosen a filter to see more options.</p><button class="button button-outline" id="empty-reset" type="button">Clear filters</button></div>
+          <div class="load-more-wrap"><span id="results-endnote">You’re all caught up.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-section" id="how-it-works">
+      <div class="how-heading"><p class="eyebrow">A LITTLE LESS STRESS, A LOT MORE HOME</p><h2>Moving somewhere new<br>should feel <em>simple.</em></h2></div>
+      <div class="steps-grid"><article class="step-card"><span class="step-number">01</span><div class="step-icon step-icon-pin">⌖</div><h3>Pick your place</h3><p>Search by city, neighbourhood and budget. Find what fits before you even pack.</p></article><article class="step-card"><span class="step-number">02</span><div class="step-icon step-icon-key">⌂</div><h3>Get the details</h3><p>See what’s included, understand the house rules, and explore the space at your own pace.</p></article><article class="step-card"><span class="step-number">03</span><div class="step-icon step-icon-heart">♡</div><h3>Find your feeling</h3><p>Save places you like and keep a shortlist close while you plan your next chapter.</p></article></div>
+    </section>
+
+    <section class="closing-section" id="demo-note"><div><p class="eyebrow">BUILT WITH CARE · DEMO EXPERIENCE</p><h2>A little more<br><em>at home.</em></h2></div><p class="closing-copy">StayHub is an independent portfolio demo. Listings are sample data; no real reservations, payments, or accounts are processed.</p><a class="back-top" href="#top" aria-label="Back to top">↑</a></section>
+  </main>
+  <footer class="site-footer"><a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">s</span><span>stayhub<span class="brand-dot">.</span></span></a><span>MADE FOR THE NEXT CHAPTER</span><span>© <span id="year"></span> STAYHUB · PORTFOLIO PROJECT</span></footer>
+
+  <dialog class="detail-dialog" id="detail-dialog" aria-labelledby="detail-title"><button class="dialog-close" type="button" aria-label="Close stay details">×</button><div id="detail-content"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
